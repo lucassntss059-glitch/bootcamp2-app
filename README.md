@@ -39,6 +39,5 @@ O **OndePassa** é uma aplicação web moderna e responsiva para consulta e nave
 ├── style.css    # Estilização visual, CSS Grid e variáveis de cor
 └── script.js    # Lógica de consumo de APIs, modais e renderização
 
-```
 
  
