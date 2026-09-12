@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onde Passa | Filmes e Séries</title>
+    <!-- Ícones do FontAwesome -->
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- CABEÇALHO -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <i class="fa-solid fa-film"></i> Onde<span>Passa</span>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Pesquise qualquer filme ou série...">
+                <button id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main>
+        <div class="grid-container" id="catalogGrid">
+            <!-- Cards gerados via JS -->
+        </div>
+    </main>
+
+    <!-- MODAL DE DETALHES -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeModal">&times;</button>
+            <div class="modal-hero">
+                <img id="modalBackdrop" class="modal-backdrop" src="" alt="Capa">
+            </div>
+            <div class="modal-body">
+                <h2 id="modalTitle">Título</h2>
+                <p id="modalOverview" style="color: #cbd5e1; line-height: 1.6;"></p>
+
+                <div class="streaming-section">
+                    <h3><i class="fa-solid fa-tv" style="color: var(--blue-accent);"></i> Transmissão / Plataforma:</h3>
+                    <div class="providers-badge" id="modalProviders" style="margin-top: 0.5rem;"></div>
+                </div>
+
+                <div>
+                    <h3><i class="fa-solid fa-users" style="color: var(--blue-accent);"></i> Elenco Principal:</h3>
+                    <p id="modalCast" style="color: var(--text-muted); margin-top: 0.3rem;"></p>
+                </div>
+
+                <div>
+                    <h3><i class="fa-brands fa-youtube" style="color: #ef4444;"></i> Trailer Oficial:</h3>
+                    <div class="video-container">
+                        <iframe id="modalTrailer" src="" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 OndePassa - Alimentado via API pública aberta (TVMaze API).</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>

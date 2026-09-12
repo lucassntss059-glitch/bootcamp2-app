@@ -1,0 +1,313 @@
+:root {
+    /* Fundos */
+    --bg-main: #060d17;
+    --bg-header: #0b1524;
+    --bg-card: #0f1c30;
+    --bg-card-hover: #14263f;
+
+    /* Texto */
+    --text-main: #e2e8f0;
+    --text-muted: #94a3b8;
+
+    /* Azuis de acento */
+    --blue-accent: #38bdf8;
+    --blue-light: #7dd3fc;
+    --blue-primary: #2563eb;
+    --blue-hover: #1d4ed8;
+
+    /* Bordas */
+    --border-color: #1e293b;
+}
+
+:root *{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- CABEÇALHO --- */
+header {
+    background: var(--bg-header);
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 20px rgba(2, 132, 199, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--blue-accent);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo span {
+    color: var(--blue-light);
+}
+
+/* --- BARRA DE BUSCA --- */
+.search-box {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+    max-width: 500px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: #0b192c;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.search-box input:focus {
+    border-color: var(--blue-accent);
+}
+
+.search-box button {
+    padding: 0.75rem 1.25rem;
+    background-color: var(--blue-primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.search-box button:hover {
+    background-color: var(--blue-hover);
+}
+
+/* --- CONTAINER PRINCIPAL DA GRADE --- */
+main {
+    margin: 2rem 0;
+    padding: 0 1.5rem;
+    flex: 1;
+    width: 100%;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    justify-content: center;
+    width: 100%;
+}
+
+.status-msg {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    padding: 2rem 0;
+}
+
+/* --- CARD DE FILME/SÉRIE --- */
+.card {
+    background-color: var(--bg-card);
+    border: 1px solid rgba(56, 189, 248, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    border-color: var(--blue-accent);
+    box-shadow: 0 8px 25px rgba(56, 189, 248, 0.25);
+    background-color: var(--bg-card-hover);
+}
+
+.card-img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    background-color: #0b192c;
+}
+
+.card-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.card-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.rating {
+    color: #facc15;
+    font-weight: bold;
+}
+
+.providers-badge {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.provider-tag {
+    background-color: #1d4ed8;
+    color: #ffffff;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* --- MODAL DE DETALHES --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(6, 13, 23, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 1rem;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal-content {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    border-radius: 16px;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    background-color: rgba(11, 25, 44, 0.8);
+    color: white;
+    border: 1px solid var(--border-color);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    z-index: 10;
+    transition: background 0.2s;
+}
+
+.close-btn:hover {
+    background-color: var(--blue-primary);
+}
+
+#modalTitle,
+.modal-body h2,
+.modal-body h3,
+#modalOverview,
+#modalCast,
+.streaming-section h3 {
+     color: #e2e8f0 !important;
+}
+.modal-hero {
+    position: relative;
+    height: 260px;
+    background-color: #0b192c;
+}
+
+.modal-backdrop {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.6);
+}
+
+.modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.streaming-section {
+    background-color: #0b192c;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--blue-accent);
+}
+
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+    background-color: #000;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: 0;
+}
+
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: #030712;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border-color);
+}
