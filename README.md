@@ -31,13 +31,8 @@ O **OndePassa** é uma aplicação web moderna e responsiva para consulta e nave
 
 ---
 
-## 📂 Estrutura do Projeto
-
-```text
-.
-├── index.html   # Estrutura principal e marcação do modal
-├── style.css    # Estilização visual, CSS Grid e variáveis de cor
-└── script.js    # Lógica de consumo de APIs, modais e renderização
+## Github: https://github.com/lucassntss059-glitch/bootcamp2-app.git
+## Pages:  https://lucassntss059-glitch.github.io/bootcamp2-app/
 
 
  
