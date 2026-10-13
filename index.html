@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Onde Passa | Filmes e Séries</title>
     <!-- Ícones do FontAwesome -->
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,9 +17,20 @@
             </div>
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Pesquise qualquer filme ou série...">
-                <button id="searchBtn"><i class="fa-solid fa-magnifying-glass" placeholder="🔍"></i></button>
+                <button id="searchBtn" aria-label="Pesquisar"><i class="fa-solid fa-magnifying-glass"></i></button>
             </div>
         </div>
+
+        <!-- ABAS -->
+        <nav class="tabs" aria-label="Seções do catálogo">
+            <button class="tab-btn active" id="tabExplore" type="button">
+                <i class="fa-solid fa-compass"></i> Explorar
+            </button>
+            <button class="tab-btn" id="tabFavorites" type="button">
+                <i class="fa-solid fa-heart"></i> Favoritos
+                <span class="fav-count" id="favCount">0</span>
+            </button>
+        </nav>
     </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
@@ -32,12 +43,17 @@
     <!-- MODAL DE DETALHES -->
     <div class="modal-overlay" id="detailModal">
         <div class="modal-content">
-            <button class="close-btn" id="closeModal">&times;</button>
+            <button class="close-btn" id="closeModal" aria-label="Fechar">&times;</button>
             <div class="modal-hero">
                 <img id="modalBackdrop" class="modal-backdrop" src="" alt="Capa">
             </div>
             <div class="modal-body">
-                <h2 id="modalTitle">Título</h2>
+                <div class="modal-title-row">
+                    <h2 id="modalTitle">Título</h2>
+                    <button class="modal-fav-btn" id="modalFavBtn" type="button" hidden>
+                        <i class="fa-regular fa-heart"></i> <span>Favoritar</span>
+                    </button>
+                </div>
                 <p id="modalOverview" style="color: #cbd5e1; line-height: 1.6;"></p>
 
                 <div class="streaming-section">
