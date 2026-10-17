@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    container_name: ondepassa
+    ports:
+      - "8080:80"        # acesse em http://localhost:8080
+    restart: unless-stopped
+
+    # Opcional, para desenvolver: descomente as linhas abaixo e o container
+    # passa a usar os arquivos da sua pasta, sem precisar rebuildar a cada mudança.
+    # volumes:
+    #   - .:/usr/share/nginx/html:ro
