@@ -30,7 +30,71 @@ O **OndePassa** é uma aplicação web moderna e responsiva para consulta e nave
   - [YouTube Data API v3](https://developers.google.com/youtube/v3) *(Para busca e reprodução de trailers)*
 
 ---
+## 🗄️ Modelo de Dados
 
+O banco tem uma única tabela, favoritos. Os usuários ficam em auth.users, gerenciada pelo próprio Supabase.
+
+Coluna	Tipo	Descrição
+id	bigint	Chave primária
+user_id	uuid	Dono do favorito (referencia auth.users)
+tvmaze_id	integer	Id do título na TVMaze
+nome	text	Nome do filme ou série
+ano	text	Ano de estreia
+nota	numeric(3,1)	Nota média
+poster_url	text	Endereço da capa
+plataforma	text	Emissora ou streaming
+criado_em	timestamptz	Data em que foi favoritado
+
+Existe uma restrição UNIQUE (user_id, tvmaze_id) para impedir favoritos duplicados. O script completo, com as políticas de RLS, está em schema.sql.
+
+🐳 Executando com Docker
+Direto do Docker Hub
+bash
+docker run -d -p 8080:80 --name ondepassa SEU_USUARIO_DOCKERHUB/ondepassa:latest
+
+Acesse http://localhost:8080.
+
+Tags disponíveis:
+
+Tag	Descrição
+1.0	Primeira versão funcional (busca, favoritos e login)
+1.1	Nginx com compressão gzip, cache de CSS/JS e healthcheck
+latest	Versão mais recente (atualmente 1.1)
+A partir do código-fonte
+bash
+git clone https://github.com/lucassntss059-glitch/bootcamp2-app.git
+cd bootcamp2-app
+docker compose up -d --build
+
+Para parar e remover o container: docker compose down.
+
+## ⚙️ Configuração
+
+Para rodar com a sua própria conta do Supabase:
+
+Crie um projeto em supabase.com.
+No SQL Editor, execute o conteúdo de schema.sql.
+Em Project Settings → API, copie a Project URL e a chave anon public.
+No início do script.js, preencha:
+js
+   const SUPABASE_URL = 'https://SEU_PROJETO.supabase.co';
+   const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON';
+(Opcional) Para exibir os trailers dentro do site, informe uma chave da YouTube Data API v3 em YOUTUBE_API_KEY. Sem ela, o site mostra o botão "Assistir no YouTube".
+
+⚠️ Segurança: a chave anon do Supabase é pública por natureza, e a proteção dos dados é feita pelas políticas de RLS. Já a chave service_role nunca deve ser colocada no código. Restrinja a chave do YouTube por domínio no Google Cloud.
+
+Por padrão, o Supabase exige confirmação de e-mail no cadastro. Para testes, isso pode ser desativado em Authentication → Providers → Email.
+
+📁 Estrutura do Projeto
+bootcamp2-app/
+├── index.html           # Estrutura da página, modais e abas
+├── style.css            # Estilos e tema escuro
+├── script.js            # Lógica: busca, favoritos, login e Supabase
+├── schema.sql           # Tabela e políticas de segurança do banco
+├── nginx.conf           # Configuração do servidor (gzip e cache)
+├── Dockerfile           # Imagem Docker do site
+├── docker-compose.yml   # Execução com um comando
+└── .dockerignore        # Arquivos ignorados no build da imagem
 ## Github: https://github.com/lucassntss059-glitch/bootcamp2-app.git
 ## Pages:  https://lucassntss059-glitch.github.io/bootcamp2-app/
 
