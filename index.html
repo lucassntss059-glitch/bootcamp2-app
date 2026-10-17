@@ -30,6 +30,16 @@
                 <i class="fa-solid fa-heart"></i> Favoritos
                 <span class="fav-count" id="favCount">0</span>
             </button>
+
+            <div class="auth-area">
+                <span class="user-email" id="userEmail" hidden></span>
+                <button class="tab-btn" id="loginBtn" type="button">
+                    <i class="fa-solid fa-right-to-bracket"></i> Entrar
+                </button>
+                <button class="tab-btn" id="logoutBtn" type="button" hidden>
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
+                </button>
+            </div>
         </nav>
     </header>
 
@@ -76,9 +86,30 @@
         </div>
     </div>
 
+    <!-- MODAL DE LOGIN / CADASTRO -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-content auth-content">
+            <button class="close-btn" id="closeAuth" aria-label="Fechar">&times;</button>
+            <div class="modal-body">
+                <h2>Entrar no OndePassa</h2>
+                <p id="authMessage" class="auth-message">Entre para salvar seus favoritos em qualquer dispositivo.</p>
+                <form id="authForm" class="auth-form">
+                    <input type="email" id="authEmail" placeholder="Seu e-mail" required autocomplete="email">
+                    <input type="password" id="authPassword" placeholder="Senha (mínimo 6 caracteres)" required minlength="6" autocomplete="current-password">
+                    <div class="auth-actions">
+                        <button type="submit" id="authSubmit" class="auth-primary">Entrar</button>
+                        <button type="button" id="authSignup" class="auth-secondary">Criar conta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <p>&copy; 2026 OndePassa - Alimentado via API pública aberta (TVMaze API).</p>
     </footer>
+    <!-- Biblioteca do Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
 </html>

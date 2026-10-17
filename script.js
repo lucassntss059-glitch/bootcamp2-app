@@ -1,8 +1,13 @@
 const BASE_URL = 'https://api.tvmaze.com';
 
-// Chave da YouTube Data API v3 (console.cloud.google.com > APIs > YouTube Data API v3).
-// Sem essa chave, o site usa um botão "Assistir no YouTube" em vez de embutir o vídeo.
-// IMPORTANTE: nunca publique sua chave real em código público; restrinja-a por domínio no Google Cloud.
+/* CONFIGURAÇÃO DO SUPABASE */
+const SUPABASE_URL = 'https://ootblbzdxupnsurmmbsi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vdGJsYnpkeHVwbnN1cm1tYnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MjU3NjcsImV4cCI6MjEwNzUwMTc2N30.o3xDzaUbOR2Ah9avM1GIJluKevds7vX2uoAGZalxxn8';
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* API do Youtube para exibir trailers 
+*/
 const YOUTUBE_API_KEY = 'AIzaSyB84Qs7Fqv-DBunhsKHUnS0PM8gi-YZMfg';
 
 const PLACEHOLDER_POSTER =
@@ -24,12 +29,23 @@ const tabFavorites = document.getElementById('tabFavorites');
 const favCount = document.getElementById('favCount');
 const modalFavBtn = document.getElementById('modalFavBtn');
 
-let currentView = 'explore';   // 'explore' | 'favorites'
-let currentModalItem = null;   // título aberto no modal (formato normalizado)
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const userEmail = document.getElementById('userEmail');
+const authModal = document.getElementById('authModal');
+const closeAuth = document.getElementById('closeAuth');
+const authForm = document.getElementById('authForm');
+const authEmail = document.getElementById('authEmail');
+const authPassword = document.getElementById('authPassword');
+const authMessage = document.getElementById('authMessage');
+const authSubmit = document.getElementById('authSubmit');
+const authSignup = document.getElementById('authSignup');
 
-/* ============================================================
-   UTILITÁRIOS
-   ============================================================ */
+let currentView = 'explore';   // 'explore' | 'favorites'
+let currentModalItem = null;   // título aberto no modal
+let currentUser = null;        // usuário logado (ou null)
+
+/* UTILITÁRIOS */
 
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -37,62 +53,89 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Converte o objeto bruto da TVMaze para o formato usado no site.
-// Esse mesmo formato é o que será gravado na tabela "titulos" do banco.
+// Formato padrão de um título no site (mesmos campos da tabela "favoritos")
 function normalizeShow(show) {
     return {
-        id: show.id,                                       // titulos.tvmaze_id
-        name: show.name,                                   // titulos.nome
-        year: show.premiered ? show.premiered.split('-')[0] : 'N/A', // titulos.ano
-        rating: show.rating?.average ?? 'N/A',             // titulos.nota
-        poster: show.image?.medium || PLACEHOLDER_POSTER,  // titulos.poster_url
-        network: show.network?.name || show.webChannel?.name || 'TV / Streaming' // titulos.plataforma
+        id: show.id,
+        name: show.name,
+        year: show.premiered ? show.premiered.split('-')[0] : 'N/A',
+        rating: show.rating?.average ?? 'N/A',
+        poster: show.image?.medium || PLACEHOLDER_POSTER,
+        network: show.network?.name || show.webChannel?.name || 'TV / Streaming'
     };
 }
 
-/* ============================================================
-   FAVORITOS (camada de dados)
-   Hoje usa localStorage. Quando o banco estiver pronto, basta
-   trocar o corpo destas funções por chamadas à sua API
-   (GET/POST/DELETE /favoritos) — o resto do código não muda.
-   ============================================================ */
-
-const FAVORITES_KEY = 'ondepassa_favoritos';
+/*
+   FAVORITOS (Supabase)
+   A lista fica em memória (this.list) para a tela desenhar rápido;
+   toda alteração é gravada na tabela "favoritos" do banco.
+*/
 
 const FavoritesStore = {
-    getAll() {
-        try {
-            return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
-        } catch {
-            return [];
-        }
+    list: [],
+
+    // Linha do banco -> formato do site
+    fromRow(row) {
+        return {
+            id: row.tvmaze_id,
+            name: row.nome,
+            year: row.ano ?? 'N/A',
+            rating: row.nota ?? 'N/A',
+            poster: row.poster_url || PLACEHOLDER_POSTER,
+            network: row.plataforma || 'TV / Streaming'
+        };
     },
 
-    saveAll(list) {
-        try {
-            localStorage.setItem(FAVORITES_KEY, JSON.stringify(list));
-        } catch (error) {
-            console.error('Não foi possível salvar os favoritos:', error);
+    // Formato do site -> linha do banco (user_id é preenchido pelo próprio banco)
+    toRow(item) {
+        return {
+            tvmaze_id: item.id,
+            nome: item.name,
+            ano: item.year === 'N/A' ? null : item.year,
+            nota: typeof item.rating === 'number' ? item.rating : null,
+            poster_url: item.poster === PLACEHOLDER_POSTER ? null : item.poster,
+            plataforma: item.network
+        };
+    },
+
+    // Busca os favoritos do usuário logado 
+    async load() {
+        if (!currentUser) {
+            this.list = [];
+            return;
         }
+        const { data, error } = await db
+            .from('favoritos')
+            .select('*')
+            .order('criado_em', { ascending: false });
+
+        if (error) {
+            console.error('Erro ao carregar favoritos:', error);
+            return;
+        }
+        this.list = data.map(row => this.fromRow(row));
+    },
+
+    getAll() {
+        return this.list;
     },
 
     has(id) {
-        return this.getAll().some(item => item.id === id);
+        return this.list.some(item => item.id === id);
     },
 
-    // Retorna true se o título passou a ser favorito, false se foi removido.
-    toggle(item) {
-        const list = this.getAll();
-        const index = list.findIndex(fav => fav.id === item.id);
-
-        if (index >= 0) {
-            list.splice(index, 1);
-            this.saveAll(list);
+    // Retorna true se virou favorito, false se foi removido. Lança erro se o banco falhar.
+    async toggle(item) {
+        if (this.has(item.id)) {
+            const { error } = await db.from('favoritos').delete().eq('tvmaze_id', item.id);
+            if (error) throw error;
+            this.list = this.list.filter(fav => fav.id !== item.id);
             return false;
         }
 
-        list.unshift({ ...item, savedAt: new Date().toISOString() }); // favoritos.criado_em
-        this.saveAll(list);
+        const { error } = await db.from('favoritos').insert(this.toRow(item));
+        if (error) throw error;
+        this.list.unshift(item);
         return true;
     }
 };
@@ -114,21 +157,103 @@ function updateModalFavButton() {
     modalFavBtn.querySelector('span').textContent = isFav ? 'Remover dos favoritos' : 'Favoritar';
 }
 
-// Alterna o favorito e sincroniza a interface (card, modal, contador e aba).
-function handleToggleFavorite(item, cardButton) {
-    const isFav = FavoritesStore.toggle(item);
-    updateFavCount();
-
-    if (cardButton) setHeartState(cardButton, isFav);
-    if (currentModalItem && currentModalItem.id === item.id) updateModalFavButton();
-
-    // Na aba de favoritos, remover um título tira o card da lista.
-    if (currentView === 'favorites') renderFavorites();
+// Atualiza todos os corações visíveis conforme a lista atual
+function syncHearts() {
+    document.querySelectorAll('.card').forEach(card => {
+        const btn = card.querySelector('.fav-btn');
+        if (btn) setHeartState(btn, FavoritesStore.has(Number(card.dataset.id)));
+    });
 }
 
-/* ============================================================
-   ABAS
-   ============================================================ */
+async function handleToggleFavorite(item) {
+    if (!currentUser) {
+        openAuthModal('Entre na sua conta para salvar favoritos.');
+        return;
+    }
+
+    try {
+        await FavoritesStore.toggle(item);
+    } catch (error) {
+        console.error('Erro ao atualizar favorito:', error);
+        alert('Não foi possível atualizar seus favoritos. Tente novamente.');
+        return;
+    }
+
+    updateFavCount();
+    updateModalFavButton();
+    if (currentView === 'favorites') renderFavorites();
+    else syncHearts();
+}
+
+/* AUTENTICAÇÃO (Supabase Auth) */
+
+function updateAuthUI() {
+    const logged = !!currentUser;
+    loginBtn.hidden = logged;
+    logoutBtn.hidden = !logged;
+    userEmail.hidden = !logged;
+    userEmail.textContent = logged ? currentUser.email : '';
+}
+
+function openAuthModal(message) {
+    authMessage.textContent = message || 'Entre para salvar seus favoritos em qualquer dispositivo.';
+    authModal.classList.add('active');
+    authEmail.focus();
+}
+
+function closeAuthModal() {
+    authModal.classList.remove('active');
+    authForm.reset();
+}
+
+async function handleAuth(mode) {
+    const email = authEmail.value.trim();
+    const password = authPassword.value;
+    if (!email || password.length < 6) {
+        authMessage.textContent = 'Informe um e-mail válido e uma senha com pelo menos 6 caracteres.';
+        return;
+    }
+
+    authSubmit.disabled = authSignup.disabled = true;
+    authMessage.textContent = mode === 'signup' ? 'Criando conta...' : 'Entrando...';
+
+    const { data, error } = mode === 'signup'
+        ? await db.auth.signUp({ email, password })
+        : await db.auth.signInWithPassword({ email, password });
+
+    authSubmit.disabled = authSignup.disabled = false;
+
+    if (error) {
+        authMessage.textContent = error.message;
+        return;
+    }
+
+    // Com confirmação de e-mail ligada, o cadastro não gera sessão até o usuário confirmar.
+    if (mode === 'signup' && !data.session) {
+        authMessage.textContent = 'Conta criada! Confirme seu e-mail e depois clique em Entrar.';
+        return;
+    }
+
+    closeAuthModal();
+}
+
+// Roda quando a página abre, no login e no logout
+async function refreshAfterAuth() {
+    updateAuthUI();
+    await FavoritesStore.load();
+    updateFavCount();
+    updateModalFavButton();
+    if (currentView === 'favorites') renderFavorites();
+    else syncHearts();
+}
+
+db.auth.onAuthStateChange((event, session) => {
+    currentUser = session?.user ?? null;
+    // setTimeout evita travar o Supabase por chamar o banco dentro deste callback
+    setTimeout(refreshAfterAuth, 0);
+});
+
+/* ABAS */
 
 function setActiveTab(view) {
     currentView = view;
@@ -143,6 +268,19 @@ function showExplore() {
 
 function renderFavorites() {
     setActiveTab('favorites');
+
+    if (!currentUser) {
+        catalogGrid.innerHTML = `
+            <div class="empty-state">
+                <i class="fa-regular fa-heart"></i>
+                <p>Entre na sua conta para ver os títulos que você favoritou.</p>
+                <button type="button" class="auth-primary" id="emptyLoginBtn">Entrar</button>
+            </div>
+        `;
+        document.getElementById('emptyLoginBtn').addEventListener('click', () => openAuthModal());
+        return;
+    }
+
     const favorites = FavoritesStore.getAll();
 
     if (favorites.length === 0) {
@@ -159,9 +297,7 @@ function renderFavorites() {
     renderCards(favorites);
 }
 
-/* ============================================================
-   CATÁLOGO E BUSCA
-   ============================================================ */
+/* CATÁLOGO E BUSCA */
 
 async function loadInitialCatalog() {
     catalogGrid.innerHTML = '<p class="status-msg">Carregando catálogo completo...</p>';
@@ -175,7 +311,6 @@ async function loadInitialCatalog() {
 }
 
 async function handleSearch() {
-    // Pesquisar sempre leva o usuário de volta para a aba Explorar.
     if (currentView !== 'explore') setActiveTab('explore');
 
     const query = searchInput.value.trim();
@@ -194,7 +329,6 @@ async function handleSearch() {
     }
 }
 
-// Recebe títulos já normalizados (via busca ou via favoritos).
 function renderCards(items) {
     catalogGrid.innerHTML = '';
 
@@ -208,6 +342,7 @@ function renderCards(items) {
 
         const card = document.createElement('div');
         card.className = 'card';
+        card.dataset.id = item.id;
         card.addEventListener('click', () => openModal(item.id));
 
         card.innerHTML = `
@@ -228,19 +363,16 @@ function renderCards(items) {
             </div>
         `;
 
-        const favBtn = card.querySelector('.fav-btn');
-        favBtn.addEventListener('click', (e) => {
+        card.querySelector('.fav-btn').addEventListener('click', (e) => {
             e.stopPropagation(); // não abre o modal ao favoritar
-            handleToggleFavorite(item, favBtn);
+            handleToggleFavorite(item);
         });
 
         catalogGrid.appendChild(card);
     });
 }
 
-/* ============================================================
-   TRAILER
-   ============================================================ */
+/* TRAILER */
 
 async function fetchYoutubeTrailerId(query) {
     if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'COLE_SUA_CHAVE_AQUI') {
@@ -275,9 +407,7 @@ function renderTrailer(videoId, searchQuery) {
     }
 }
 
-/* ============================================================
-   MODAL DE DETALHES
-   ============================================================ */
+/* MODAL DE DETALHES */
 
 async function openModal(showId) {
     detailModal.classList.add('active');
@@ -294,7 +424,6 @@ async function openModal(showId) {
         const response = await fetch(`${BASE_URL}/shows/${showId}?embed=cast`);
         const show = await response.json();
 
-        // Se o usuário fechou o modal enquanto carregava, não faz nada.
         if (!detailModal.classList.contains('active')) return;
 
         currentModalItem = normalizeShow(show);
@@ -330,41 +459,39 @@ async function openModal(showId) {
 function closeDetailModal() {
     detailModal.classList.remove('active');
     currentModalItem = null;
-    // Esvazia o player para parar o vídeo
     document.querySelector('.video-container').innerHTML = '<iframe id="modalTrailer" src="" allowfullscreen></iframe>';
 }
 
-/* ============================================================
-   EVENTOS
-   ============================================================ */
+/* EVENTOS */
 
 closeModal.addEventListener('click', closeDetailModal);
-
-// Fecha ao clicar fora da janela ou ao apertar Esc
 detailModal.addEventListener('click', (e) => {
     if (e.target === detailModal) closeDetailModal();
 });
+
+closeAuth.addEventListener('click', closeAuthModal);
+authModal.addEventListener('click', (e) => {
+    if (e.target === authModal) closeAuthModal();
+});
+
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && detailModal.classList.contains('active')) closeDetailModal();
+    if (e.key !== 'Escape') return;
+    if (authModal.classList.contains('active')) closeAuthModal();
+    else if (detailModal.classList.contains('active')) closeDetailModal();
 });
 
 modalFavBtn.addEventListener('click', () => {
-    if (!currentModalItem) return;
-    const item = currentModalItem;
-    const isFav = FavoritesStore.toggle(item);
-    updateFavCount();
-    updateModalFavButton();
-
-    // Mantém os corações dos cards visíveis em sincronia
-    if (currentView === 'favorites') {
-        renderFavorites();
-    } else {
-        document.querySelectorAll('.card').forEach(card => {
-            const title = card.querySelector('.card-title')?.textContent;
-            if (title === item.name) setHeartState(card.querySelector('.fav-btn'), isFav);
-        });
-    }
+    if (currentModalItem) handleToggleFavorite(currentModalItem);
 });
+
+loginBtn.addEventListener('click', () => openAuthModal());
+logoutBtn.addEventListener('click', () => db.auth.signOut());
+
+authForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleAuth('login');
+});
+authSignup.addEventListener('click', () => handleAuth('signup'));
 
 tabExplore.addEventListener('click', showExplore);
 tabFavorites.addEventListener('click', renderFavorites);
