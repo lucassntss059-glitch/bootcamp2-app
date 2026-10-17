@@ -82,5 +82,6 @@ bootcamp2-app/
 ## Github: https://github.com/lucassntss059-glitch/bootcamp2-app.git
 ## Pages:  https://lucassntss059-glitch.github.io/bootcamp2-app/
 ## DockerHub: https://hub.docker.com/repository/docker/luscass/ondepassa/
+## Comando docker run: docker run -d -p 8080:80 luscass/ondepassa:latest
 
  
