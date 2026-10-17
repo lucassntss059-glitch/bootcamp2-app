@@ -50,7 +50,7 @@ Existe uma restrição UNIQUE (user_id, tvmaze_id) para impedir favoritos duplic
 🐳 Executando com Docker
 Direto do Docker Hub
 bash
-docker run -d -p 8080:80 --name ondepassa SEU_USUARIO_DOCKERHUB/ondepassa:latest
+docker run -d -p 8080:80 --name ondepassa luscass_DOCKERHUB/ondepassa:latest
 
 Acesse http://localhost:8080.
 
@@ -77,8 +77,8 @@ No SQL Editor, execute o conteúdo de schema.sql.
 Em Project Settings → API, copie a Project URL e a chave anon public.
 No início do script.js, preencha:
 js
-   const SUPABASE_URL = 'https://SEU_PROJETO.supabase.co';
-   const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON';
+   const SUPABASE_URL = 'https://ootblbzdxupnsurmmbsi.supabase.co';
+   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vdGJsYnpkeHVwbnN1cm1tYnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MjU3NjcsImV4cCI6MjEwNzUwMTc2N30.o3xDzaUbOR2Ah9avM1GIJluKevds7vX2uoAGZalxxn8';
 (Opcional) Para exibir os trailers dentro do site, informe uma chave da YouTube Data API v3 em YOUTUBE_API_KEY. Sem ela, o site mostra o botão "Assistir no YouTube".
 
 ⚠️ Segurança: a chave anon do Supabase é pública por natureza, e a proteção dos dados é feita pelas políticas de RLS. Já a chave service_role nunca deve ser colocada no código. Restrinja a chave do YouTube por domínio no Google Cloud.
