@@ -1,8 +1,12 @@
-# Imagem base: servidor Nginx leve (versão Alpine)
 FROM nginx:1.27-alpine
 
-# Copia os arquivos do site para a pasta que o Nginx serve
-COPY . /usr/share/nginx/html
+# Configuração com compressão gzip e cache de CSS/JS
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# O Nginx escuta na porta 80 dentro do container
+COPY . /usr/share/nginx/html
+RUN rm -f /usr/share/nginx/html/nginx.conf
+
+# Docker passa a saber se o site está respondendo
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost/ >/dev/null || exit 1
+
 EXPOSE 80
