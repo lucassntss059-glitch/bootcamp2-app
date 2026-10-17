@@ -78,8 +78,9 @@ bootcamp2-app/
 ├── Dockerfile           # Imagem Docker do site
 ├── docker-compose.yml   # Execução com um comando
 └── .dockerignore        # Arquivos ignorados no build da imagem
+
 ## Github: https://github.com/lucassntss059-glitch/bootcamp2-app.git
 ## Pages:  https://lucassntss059-glitch.github.io/bootcamp2-app/
-
+## DockerHub: https://hub.docker.com/repository/docker/luscass/ondepassa/
 
  
